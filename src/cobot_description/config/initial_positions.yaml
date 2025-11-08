@@ -1,4 +1,4 @@
-# Default initial positions for akabot's ros2_control system
+# Default initial positions for cobot's ros2_control system
 
 initial_positions:
   top_plate_joint: 3.1200
