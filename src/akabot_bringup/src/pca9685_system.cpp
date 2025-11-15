@@ -1,4 +1,4 @@
-#include "pca9685_hardware_interface/pca9685_system.hpp"
+#include "akabot_bringup/pca9685_system.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -12,7 +12,7 @@
 
 
 
-namespace pca9685_hardware_interface
+namespace akabot_bringup
 {
 hardware_interface::CallbackReturn Pca9685SystemHardware::on_init(
   const hardware_interface::HardwareInfo & info)
@@ -146,8 +146,8 @@ hardware_interface::return_type Pca9685SystemHardware::write(
   return hardware_interface::return_type::OK;
 }
 
-}  // namespace pca9685_hardware_interface
+}  // namespace akabot_bringup
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  pca9685_hardware_interface::Pca9685SystemHardware, hardware_interface::SystemInterface)
+  akabot_bringup::Pca9685SystemHardware, hardware_interface::SystemInterface)

@@ -1,9 +1,9 @@
-#include "pca9685_hardware_interface/pca9685_comm.h"
+#include "akabot_bringup/pca9685_comm.h"
 #include <unistd.h>
 #include <cmath>
 
-#include "pca9685_hardware_interface/Constants.h"
-#include "pca9685_hardware_interface/I2CPeripheral.h"
+#include "akabot_bringup/Constants.h"
+#include "akabot_bringup/I2CPeripheral.h"
 
 namespace PiPCA9685 {
 
