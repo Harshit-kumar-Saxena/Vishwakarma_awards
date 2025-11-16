@@ -26,7 +26,7 @@ def generate_launch_description():
     robot_description_config = Command(['xacro ', urdf_model_path])
     robot_description_str = ParameterValue(robot_description_config, value_type=str)
     
-    # Launch Gazebo
+    # Launch Gazebo (using ros_gz_sim for newer Gazebo)
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -66,11 +66,26 @@ def generate_launch_description():
         output='screen'
     )
     
-    # Bridge for end effector camera
-    ee_camera_bridge = Node(
+    # Bridge for end effector camera IMAGE
+    # The camera publishes to /ee_camera on Gazebo side
+    ee_camera_image_bridge = Node(
         package='ros_gz_image',
         executable='image_bridge',
-        arguments=['/ee_camera/image_raw'],
+        arguments=[
+            '/ee_camera',  # Gazebo topic
+            '--ros-args',
+            '-r', '/ee_camera:=/ee_camera/image_raw'  # Remap to ROS topic
+        ],
+        output='screen'
+    )
+    
+    # Bridge for camera info
+    ee_camera_info_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/ee_camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo'
+        ],
         output='screen'
     )
     
@@ -138,7 +153,8 @@ def generate_launch_description():
         gazebo_launch,
         robot_state_publisher,
         spawn_robot,
-        ee_camera_bridge,
+        ee_camera_image_bridge,
+        ee_camera_info_bridge,
         joint_state_broadcaster,
         arm_controller,
         hand_controller,

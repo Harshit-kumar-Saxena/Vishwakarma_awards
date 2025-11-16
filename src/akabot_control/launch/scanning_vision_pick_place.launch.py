@@ -1,24 +1,32 @@
 #!/usr/bin/env python3
 """
-Launch file for vision-based pick and place in Gazebo
+Launch file for scanning vision-based pick and place
 """
 
 import os
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction
-from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import PathJoinSubstitution, Command
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
     
-    # Path to the new world file with balls
+    # Paths
     pkg_gazebo = FindPackageShare(package='akabot_gazebo').find('akabot_gazebo')
     world_path = os.path.join(pkg_gazebo, 'worlds', 'pick_and_place_balls.world')
     
-    # Include Gazebo launch with new world
+    pkg_description = FindPackageShare(package='akabot_description').find('akabot_description')
+    urdf_model_path = os.path.join(pkg_description, 'urdf/akabot_gz.urdf.xacro')
+    
+    # Robot description
+    robot_description_config = Command(['xacro ', urdf_model_path])
+    robot_description_str = ParameterValue(robot_description_config, value_type=str)
+    
+    # Launch Gazebo
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -34,15 +42,6 @@ def generate_launch_description():
     )
     
     # Robot state publisher
-    pkg_description = FindPackageShare(package='akabot_description').find('akabot_description')
-    urdf_model_path = os.path.join(pkg_description, 'urdf/akabot_gz.urdf.xacro')
-    
-    from launch.substitutions import Command
-    from launch_ros.parameter_descriptions import ParameterValue
-    
-    robot_description_config = Command(['xacro ', urdf_model_path])
-    robot_description_str = ParameterValue(robot_description_config, value_type=str)
-    
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -67,15 +66,29 @@ def generate_launch_description():
         output='screen'
     )
     
-    # Bridge for end effector camera
-    ee_camera_bridge = Node(
+    # Bridge for end effector camera IMAGE
+    ee_camera_image_bridge = Node(
         package='ros_gz_image',
         executable='image_bridge',
-        arguments=['/ee_camera/image_raw'],
+        arguments=[
+            '/ee_camera',
+            '--ros-args',
+            '-r', '/ee_camera:=/ee_camera/image_raw'
+        ],
         output='screen'
     )
     
-    # Spawn controllers with delays
+    # Bridge for camera info
+    ee_camera_info_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/ee_camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo'
+        ],
+        output='screen'
+    )
+    
+    # Spawn controllers
     joint_state_broadcaster = TimerAction(
         period=5.0,
         actions=[
@@ -140,14 +153,14 @@ def generate_launch_description():
         ]
     )
     
-    # Vision pick and place controller
-    vision_controller = TimerAction(
+    # Scanning vision pick and place controller
+    scanning_controller = TimerAction(
         period=25.0,
         actions=[
             Node(
                 package='akabot_control',
-                executable='vision_pick_place',
-                name='vision_pick_place',
+                executable='scanning_vision_pick_place',
+                name='scanning_vision_pick_place',
                 output='screen',
                 parameters=[
                     {'use_sim_time': True}
@@ -160,11 +173,11 @@ def generate_launch_description():
         gazebo_launch,
         robot_state_publisher,
         spawn_robot,
-        ee_camera_bridge,
+        ee_camera_image_bridge,
+        ee_camera_info_bridge,
         joint_state_broadcaster,
         arm_controller,
         hand_controller,
         moveit_launch,
-        vision_controller,
+        scanning_controller,
     ])
-
