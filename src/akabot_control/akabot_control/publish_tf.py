@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
 Ball TF Publisher Node
-1. Detects white balls on a blue plate (using verified logic).
-2. Converts 2D pixels to 3D world coordinates using Ray-Plane intersection.
+1. Detects white balls on a blue plate.
+2. Converts 2D pixels to 3D world coordinates.
 3. Publishes coordinate transforms (TF) for each ball.
 """
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import TransformStamped
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import tf2_ros
-from tf2_ros import TransformBroadcaster
-from scipy.spatial.transform import Rotation as R
+from tf2_ros import TransformBroadcaster, LookupException, ConnectivityException, ExtrapolationException
 
 class BallTFPublisher(Node):
     def __init__(self):
@@ -30,16 +30,28 @@ class BallTFPublisher(Node):
         
         # --- Camera Subscribers ---
         self.camera_model = None
-        self.create_subscription(CameraInfo, '/tf_camera/camera_info', self.info_callback, 10)
-        self.create_subscription(Image, '/tf_camera/image_raw', self.image_callback, 10)
+        
+        self.create_subscription(
+            CameraInfo, 
+            '/tf_camera/camera_info', 
+            self.info_callback, 
+            qos_profile_sensor_data
+        )
+        self.create_subscription(
+            Image, 
+            '/tf_camera/image_raw', 
+            self.image_callback, 
+            qos_profile_sensor_data
+        )
         
         # --- Configuration ---
         self.start_time = self.get_clock().now()
-        self.warmup_duration = 7.0  # Seconds to wait before publishing
+        self.warmup_duration = 5.0
         
-        # KNOWN WORLD CONSTANT: Height of the ball center.
-        # Table (~1.01m) + Ball Radius (~0.02m) = 1.03m
-        self.ball_z_height = 1.03 
+        # --- CRITICAL FIX: RELATIVE HEIGHT ---
+        # Gazebo Ball Z (1.06) - Gazebo Robot Z (1.05) = 0.01m
+        # The ball is roughly at the same height as the robot base.
+        self.ball_z_height = 0.01
         
         self.get_logger().info(f'Ball TF Publisher initialized. Waiting {self.warmup_duration}s for sim stability...')
 
@@ -48,29 +60,24 @@ class BallTFPublisher(Node):
         self.camera_model = msg
 
     def image_callback(self, msg):
-        # 1. Check 7-second delay
         elapsed = (self.get_clock().now() - self.start_time).nanoseconds / 1e9
         if elapsed < self.warmup_duration:
             return
 
         try:
-            # 2. Convert Image
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-            
-            # 3. Detect Balls (Your verified logic)
             processed_img, balls_2d = self.detect_balls_on_plate(cv_image)
             
-            # 4. Publish TF for each ball
-            # We sort balls by their X-coordinate (u) to assign consistent IDs (ball_0 = left-most)
+            # Sort balls by X-coordinate
             balls_2d.sort(key=lambda b: b[0])
             
             if self.camera_model is not None:
                 for i, (u, v, radius) in enumerate(balls_2d):
                     self.publish_transform(u, v, i, msg.header)
             else:
-                self.get_logger().warn('Waiting for Camera Info to perform 3D projection...', throttle_duration_sec=2.0)
+                self.get_logger().warn('Waiting for Camera Info...', throttle_duration_sec=2.0)
 
-            # 5. Show Visualization
+            # Visualization
             cv2.imshow("Ball TF Publisher", processed_img)
             cv2.waitKey(1)
             
@@ -78,10 +85,7 @@ class BallTFPublisher(Node):
             self.get_logger().error(f'CV Error: {str(e)}')
 
     def detect_balls_on_plate(self, image):
-        """
-        Your specific detection logic: White Circle INSIDE Blue Plate
-        """
-        detected_balls = [] # List of (u, v, radius)
+        detected_balls = [] 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         
         # --- Step A: Find Blue Plate ---
@@ -98,7 +102,7 @@ class BallTFPublisher(Node):
         largest_plate_contour = None
         if plate_contours:
             largest_plate_contour = max(plate_contours, key=cv2.contourArea)
-            cv2.drawContours(image, [largest_plate_contour], -1, (255, 0, 0), 2) # Blue outline
+            cv2.drawContours(image, [largest_plate_contour], -1, (255, 0, 0), 2) 
 
         # --- Step B: Find White Objects ---
         lower_white = np.array([0, 0, 200])
@@ -111,26 +115,18 @@ class BallTFPublisher(Node):
         if white_contours and largest_plate_contour is not None:
             for contour in white_contours:
                 area = cv2.contourArea(contour)
-                
-                # Filter small noise
                 if area > 50:
                     ((x, y), radius) = cv2.minEnclosingCircle(contour)
                     center = (int(x), int(y))
                     
-                    # --- Step C: Check Intersection ---
-                    # Is the center of the white object inside the blue plate?
                     dist = cv2.pointPolygonTest(largest_plate_contour, center, False)
-                    
                     if dist >= 0:
-                        # --- Step D: Check Circularity ---
                         perimeter = cv2.arcLength(contour, True)
                         if perimeter == 0: continue
                         circularity = 4 * np.pi * (area / (perimeter * perimeter))
                         
                         if circularity > 0.7:
                             detected_balls.append((int(x), int(y), radius))
-                            
-                            # Visuals
                             cv2.circle(image, center, int(radius), (0, 255, 0), 2)
                             cv2.circle(image, center, 3, (0, 0, 255), -1)
                             cv2.putText(image, f"Ball", (center[0]+10, center[1]), 
@@ -139,9 +135,6 @@ class BallTFPublisher(Node):
         return image, detected_balls
 
     def publish_transform(self, u, v, ball_id, header):
-        """
-        Math: Projects 2D pixel to 3D ray, intersects with table plane (Z=1.03), publishes TF.
-        """
         # 1. Camera Intrinsics
         k = self.camera_model.k
         fx, fy = k[0], k[4]
@@ -153,40 +146,38 @@ class BallTFPublisher(Node):
         ray_z = 1.0
         ray_camera = np.array([ray_x, ray_y, ray_z])
 
+        # 3. Get Camera Pose
+        # We use base_link so the coordinates are relative to the robot base (which is at 0,0,0 in TF)
+        target_frame = 'base_link' 
+        source_frame = 'tf_camera_optical_link' # Manual override for Gazebo frame name
+        
         try:
-            # 3. Get Camera Pose (Camera -> Base Link)
-            # We fallback to 'base_link' if 'world' is not available
-            target_frame = 'base_link' 
-            source_frame = header.frame_id 
-            
-            if not self.tf_buffer.can_transform(target_frame, source_frame, rclpy.time.Time()):
-                return
-
             trans = self.tf_buffer.lookup_transform(target_frame, source_frame, rclpy.time.Time())
             
             # Position
             t_vec = np.array([trans.transform.translation.x, trans.transform.translation.y, trans.transform.translation.z])
             
-            # Rotation (Quaternion to Matrix)
+            # Rotation
             q = trans.transform.rotation
-            # Manual conversion to avoid scipy dependency if not installed
             q_w, q_x, q_y, q_z = q.w, q.x, q.y, q.z
-            R = np.array([
+            R_mat = np.array([
                 [1 - 2*(q_y**2 + q_z**2), 2*(q_x*q_y - q_z*q_w), 2*(q_x*q_z + q_y*q_w)],
                 [2*(q_x*q_y + q_z*q_w), 1 - 2*(q_x**2 + q_z**2), 2*(q_y*q_z - q_x*q_w)],
                 [2*(q_x*q_z - q_y*q_w), 2*(q_y*q_z + q_x*q_w), 1 - 2*(q_x**2 + q_y**2)]
             ])
             
             # 4. Transform Ray to Target Frame
-            ray_world = np.dot(R, ray_camera)
+            ray_world = np.dot(R_mat, ray_camera)
             
             # 5. Ray-Plane Intersection
-            # We want to find 'alpha' such that: (CameraPos + alpha * Ray).z = ball_z_height
-            if abs(ray_world[2]) < 1e-6: return # Parallel
+            if abs(ray_world[2]) < 1e-6: return 
             
+            # Now calculating using relative height (0.01) vs camera relative height (~0.8)
             alpha = (self.ball_z_height - t_vec[2]) / ray_world[2]
             
-            if alpha < 0: return # Behind camera
+            # Check: Camera (~0.8) > Ball (0.01). Ray Z is negative.
+            # (0.01 - 0.8) / (-) = (+) --> This should now pass!
+            if alpha < 0: return 
             
             intersection = t_vec + (alpha * ray_world)
             
@@ -203,8 +194,8 @@ class BallTFPublisher(Node):
             
             self.tf_broadcaster.sendTransform(t)
             
-        except Exception as e:
-            pass
+        except (LookupException, ConnectivityException, ExtrapolationException) as e:
+            self.get_logger().warn(f'TF Error: Could not transform {source_frame} to {target_frame}: {e}', throttle_duration_sec=1.0)
 
 def main(args=None):
     rclpy.init(args=args)
