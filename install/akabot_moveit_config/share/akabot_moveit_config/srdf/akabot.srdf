@@ -33,15 +33,18 @@
     <joint name="claw_base_joint" value="0.0"/>
   </group_state>
 
-  <!-- Hand open / close -->
+  <group_state name="close" group="hand">
+    <joint name="claw_base_joint" value="0"/>
+    <joint name="right_claw_joint" value="0"/>
+    <joint name="left_claw_joint" value="0"/>
+  </group_state>
+
   <group_state name="open" group="hand">
+    <joint name="claw_base_joint" value="0"/>
     <joint name="right_claw_joint" value="-0.5"/>
     <joint name="left_claw_joint" value="0.5"/>
   </group_state>
-  <group_state name="close" group="hand">
-    <joint name="right_claw_joint" value="0.0"/>
-    <joint name="left_claw_joint" value="0.0"/>
-  </group_state>
+
 
   <!-- Virtual joint mapping world -> base_link -->
   <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="base_link"/>

@@ -21,12 +21,12 @@ class DualCameraPicker(Node):
         self.hand_client = ActionClient(self.controller, FollowJointTrajectory, '/hand_controller/follow_joint_trajectory')
 
         # Heights (tweak these)
-        # IMPORTANT: For your robot the high hover 0.38 was often out-of-reach; use 0.20 as a safer hover.
-        self.HOVER_Z = 0.15
-        self.PICK_Z = 0.12
-        self.GRAB_Z = 0.035
-        self.PLATE_HOVER_Z = 0.18
-        self.PLATE_PLACE_Z = 0.08
+        # Heights (tweak these) - INCREASED Z values
+        self.HOVER_Z = 0.25      # was 0.15 — too low, unreachable
+        self.PICK_Z = 0.20       # was 0.12
+        self.GRAB_Z = 0.10       # was 0.035 — very aggressive
+        self.PLATE_HOVER_Z = 0.25
+        self.PLATE_PLACE_Z = 0.15
 
         # TF listener (frame names in your URDF)
         self.tf_buffer = tf2_ros.Buffer()
@@ -88,7 +88,10 @@ class DualCameraPicker(Node):
     # IK fallback tries
     # -----------------------
     def try_reach_pose_with_fallback(self, x, y, z, yaw=0.0):
-        pitch_list = [0.40, 0.30, 0.20, 0.10, 0.0]  # try several end-effector pitches
+        """Try multiple orientations to reach pose."""
+        # Try Z-first (hover higher, then descend in smaller steps)
+        pitch_list = [0.0, 0.15, 0.30, 0.45, 0.60, -0.15]  # wider range, include negative pitch
+        
         for pitch in pitch_list:
             self.get_logger().info(f"Trying IK with pitch={pitch:.2f} rad and z={z:.3f}...")
             pose = self.controller.create_pose(x=x, y=y, z=z, roll=0.0, pitch=pitch, yaw=yaw)
@@ -97,9 +100,28 @@ class DualCameraPicker(Node):
                 return True
             else:
                 self.get_logger().info(f"Attempt failed for pitch={pitch:.2f} at z={z:.3f}")
+        
         self.get_logger().error("IK FAILED for all fallback angles at this Z")
         return False
 
+
+    def is_within_workspace(self, x, y, z):
+        """Check if target is roughly in reachable workspace."""
+        # Adjust these bounds based on your robot's actual reach
+        # From home position [3.12, 1.5686, 0.0, 0.0, 0.0], estimate reach
+        max_reach = 0.45  # meters from base
+        distance = (x**2 + y**2)**0.5
+        
+        if distance > max_reach:
+            self.get_logger().error(f"Target ({x:.3f}, {y:.3f}) exceeds reach ({max_reach}m)")
+            return False
+        
+        if z < 0.08 or z > 0.35:
+            self.get_logger().error(f"Z={z:.3f}m is outside safe range [0.08, 0.35]")
+            return False
+        
+        return True
+    
     # -----------------------
     # main sequence
     # -----------------------
@@ -138,6 +160,17 @@ class DualCameraPicker(Node):
             return
 
         self.get_logger().info(f"Picking ball at X={ball_loc.x:.3f}, Y={ball_loc.y:.3f}")
+ 
+        if not ball_loc:
+            self.get_logger().error("Could not find ball_0! Aborting.")
+            return
+
+        self.get_logger().info(f"Picking ball at X={ball_loc.x:.3f}, Y={ball_loc.y:.3f}")
+        
+        # ADD THIS CHECK
+        if not self.is_within_workspace(ball_loc.x, ball_loc.y, self.HOVER_Z):
+            self.get_logger().error("Ball is outside reachable workspace!")
+            return
 
         # Hover above ball (use conservative hover)
         if not self.try_reach_pose_with_fallback(ball_loc.x, ball_loc.y, self.HOVER_Z):
@@ -187,7 +220,7 @@ class DualCameraPicker(Node):
         self.set_gripper(-0.5)
         # lift & home
         self.try_reach_pose_with_fallback(plate_loc.x, plate_loc.y, self.HOVER_Z)
-        self.controller.move_to_named_target('home')
+        # self.controller.move_to_named_target('home')
         self.get_logger().info("Mission Complete!")
 
 

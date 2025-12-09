@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose, PoseStamped
 from moveit_msgs.srv import GetPositionIK
-from moveit_msgs.msg import RobotState
+from moveit_msgs.msg import RobotState, Constraints, OrientationConstraint
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
@@ -121,6 +121,27 @@ class AkabotController(Node):
         req.ik_request.ik_link_name = 'claw_base'   # the link that should reach target
         req.ik_request.timeout = Duration(sec=1, nanosec=0)
 
+        # ------------------------------------------------------------------
+        # 5-DOF FIX: Add Orientation Constraints to relax rotation requirements
+        # ------------------------------------------------------------------
+        # This tells MoveIt to ignore orientation errors if position_only_ik
+        # isn't enough, allowing the solution to just match X, Y, Z.
+        constraints = Constraints()
+        orientation_constraint = OrientationConstraint()
+        orientation_constraint.header = ps.header
+        orientation_constraint.link_name = req.ik_request.ik_link_name
+        orientation_constraint.orientation = target_pose.orientation
+        
+        # Set extremely high tolerances (2*PI) to effectively ignore orientation
+        orientation_constraint.absolute_x_axis_tolerance = 6.28
+        orientation_constraint.absolute_y_axis_tolerance = 6.28
+        orientation_constraint.absolute_z_axis_tolerance = 6.28
+        orientation_constraint.weight = 1.0
+        
+        constraints.orientation_constraints.append(orientation_constraint)
+        req.ik_request.constraints = constraints
+        # ------------------------------------------------------------------
+
         # Optionally supply current robot state so IK solver has a good seed
         if self.current_joint_state is not None and len(self.current_joint_state.name) > 0:
             rs = RobotState()
@@ -140,10 +161,9 @@ class AkabotController(Node):
             self.get_logger().error('IK service returned None')
             return None
 
-        self.get_logger().info(f"IK result error_code: {res.error_code.val}")
-
         # 1 == SUCCESS
         if res.error_code.val != 1:
+            self.get_logger().warn(f"IK failed with error_code: {res.error_code.val}")
             # optionally log any returned solution for debugging
             try:
                 sol = res.solution.joint_state

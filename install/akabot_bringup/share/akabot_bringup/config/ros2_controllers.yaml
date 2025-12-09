@@ -5,7 +5,6 @@ controller_manager:
     akabot_arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    # CHANGE TYPE HERE
     hand_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
@@ -20,24 +19,19 @@ akabot_arm_controller:
       - upper_arm_joint
       - wrist_joint
       - claw_base_joint
-
     command_interfaces:
       - position
-
     state_interfaces:
       - position
       - velocity
 
-# UPDATE HAND CONTROLLER PARAMETERS
 hand_controller:
   ros__parameters:
     joints:
       - right_claw_joint
       - left_claw_joint
-
     command_interfaces:
       - position
-
     state_interfaces:
       - position
       - velocity

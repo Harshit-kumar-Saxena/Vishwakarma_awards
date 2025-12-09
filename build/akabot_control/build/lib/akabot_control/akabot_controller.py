@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose, PoseStamped
 from moveit_msgs.srv import GetPositionIK
-from moveit_msgs.msg import RobotState
+from moveit_msgs.msg import RobotState, Constraints, OrientationConstraint
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
@@ -11,15 +11,20 @@ from rclpy.action import ActionClient
 from builtin_interfaces.msg import Duration
 import time
 from rclpy.callback_groups import ReentrantCallbackGroup
+
+# Safe quaternion helper
 from tf_transformations import quaternion_from_euler
 
 
 class AkabotController(Node):
+    """
+    Robust MoveIt / controller wrapper for akabot arm.
+    """
+
     def __init__(self):
         super().__init__('akabot_controller')
         self.cb_group = ReentrantCallbackGroup()
-
-        # IMPORTANT: controller joint order must match moveit controllers config
+        # Controller joint order (must match moveit controller setup)
         self.joint_names = [
             'top_plate_joint',
             'lower_arm_joint',
@@ -31,26 +36,35 @@ class AkabotController(Node):
         self.current_joint_state = None
         self.joint_state_received = False
 
-        # Subscribers & clients
+        # Subscribers / clients
         self.joint_state_sub = self.create_subscription(
             JointState, '/joint_states', self.joint_state_callback, 10,
             callback_group=self.cb_group
         )
+
+        # IK service (MoveIt)
         self.ik_client = self.create_client(GetPositionIK, '/compute_ik')
+        # wait up to 10s for IK service
+        if not self.ik_client.wait_for_service(timeout_sec=10.0):
+            self.get_logger().warn("IK service '/compute_ik' not available after 10s. IK calls will fail until service appears.")
+        else:
+            self.get_logger().info("IK service '/compute_ik' is available.")
+
+        # Trajectory action client for the arm controller
         self.trajectory_client = ActionClient(
             self, FollowJointTrajectory, '/akabot_arm_controller/follow_joint_trajectory'
         )
-
-        # Wait for action server (non-blocking but with timeout)
         if not self.trajectory_client.wait_for_server(timeout_sec=20.0):
-            self.get_logger().warn('Trajectory action server not available after 20s (will retry on send)')
+            self.get_logger().warn("Trajectory action server not available after 20s — continuing and will retry when sending goals")
         else:
-            self.get_logger().info('Trajectory action server is ready.')
+            self.get_logger().info("Trajectory action server is ready.")
 
-        self.get_logger().info('Akabot Controller initialized')
+        self.get_logger().info('Akabot Controller initialized (Passive Mode)')
 
-    # joint state callback
-    def joint_state_callback(self, msg):
+    # -------------------------
+    # Joint state handling
+    # -------------------------
+    def joint_state_callback(self, msg: JointState):
         self.current_joint_state = msg
         self.joint_state_received = True
 
@@ -62,15 +76,20 @@ class AkabotController(Node):
             time.sleep(0.02)
         return True
 
-    def refresh_joint_state(self, timeout=2.0):
+    def refresh_joint_state(self, timeout_sec=2.0):
+        """Best-effort wait for a fresh joint_state message."""
         self.joint_state_received = False
         start = time.time()
-        while time.time() - start < timeout:
+        while time.time() - start < timeout_sec:
             if self.joint_state_received:
                 return True
-            time.sleep(0.02)
+            time.sleep(0.03)
+        self.get_logger().warn("No fresh joint state received within %.2fs" % timeout_sec)
         return False
 
+    # -------------------------
+    # Pose helper
+    # -------------------------
     def create_pose(self, x, y, z, roll=0.0, pitch=0.0, yaw=0.0):
         p = Pose()
         p.position.x = float(x)
@@ -83,64 +102,95 @@ class AkabotController(Node):
         p.orientation.w = qw
         return p
 
-    def compute_ik(self, target_pose, timeout=5.0):
-        # Try to refresh joint state, but continue even if we can't get fresh state
-        self.refresh_joint_state(timeout=1.0)
+    # -------------------------
+    # IK computation
+    # -------------------------
+    def compute_ik(self, target_pose: Pose):
+        """Return joint positions in controller order or None."""
+        # Attempt to refresh joint state before IK (best-effort)
+        self.refresh_joint_state(timeout_sec=1.0)
 
         req = GetPositionIK.Request()
-        pose_stamped = PoseStamped()
-        pose_stamped.header.frame_id = 'base_link'
-        pose_stamped.header.stamp = self.get_clock().now().to_msg()
-        pose_stamped.pose = target_pose
+        ps = PoseStamped()
+        ps.header.frame_id = 'base_link'
+        ps.header.stamp = self.get_clock().now().to_msg()
+        ps.pose = target_pose
 
         req.ik_request.group_name = 'akabot_arm'
-        req.ik_request.pose_stamped = pose_stamped
-        # IMPORTANT: tell MoveIt which link should reach the pose
-        req.ik_request.ik_link_name = 'claw_base'
+        req.ik_request.pose_stamped = ps
+        req.ik_request.ik_link_name = 'claw_base'   # the link that should reach target
         req.ik_request.timeout = Duration(sec=1, nanosec=0)
 
-        # Only include current joint state if available and non-empty
+        # ------------------------------------------------------------------
+        # 5-DOF FIX: Add Orientation Constraints to relax rotation requirements
+        # ------------------------------------------------------------------
+        # This tells MoveIt to ignore orientation errors if position_only_ik
+        # isn't enough, allowing the solution to just match X, Y, Z.
+        constraints = Constraints()
+        orientation_constraint = OrientationConstraint()
+        orientation_constraint.header = ps.header
+        orientation_constraint.link_name = req.ik_request.ik_link_name
+        orientation_constraint.orientation = target_pose.orientation
+        
+        # Set extremely high tolerances (2*PI) to effectively ignore orientation
+        orientation_constraint.absolute_x_axis_tolerance = 6.28
+        orientation_constraint.absolute_y_axis_tolerance = 6.28
+        orientation_constraint.absolute_z_axis_tolerance = 6.28
+        orientation_constraint.weight = 1.0
+        
+        constraints.orientation_constraints.append(orientation_constraint)
+        req.ik_request.constraints = constraints
+        # ------------------------------------------------------------------
+
+        # Optionally supply current robot state so IK solver has a good seed
         if self.current_joint_state is not None and len(self.current_joint_state.name) > 0:
             rs = RobotState()
             rs.joint_state = self.current_joint_state
             req.ik_request.robot_state = rs
+        else:
+            req.ik_request.robot_state = RobotState()  # empty
 
+        # Call IK service
         fut = self.ik_client.call_async(req)
-        if not self._wait_for_future(fut, timeout):
-            self.get_logger().error('IK service call timed out')
+        if not self._wait_for_future(fut, timeout_sec=5.0):
+            self.get_logger().error('IK Service Call Timed Out')
             return None
 
         res = fut.result()
         if res is None:
-            self.get_logger().error('IK returned None')
+            self.get_logger().error('IK service returned None')
             return None
 
-        self.get_logger().info(f'IK result error_code: {res.error_code.val}')
+        # 1 == SUCCESS
         if res.error_code.val != 1:
-            # log any debug info available
+            self.get_logger().warn(f"IK failed with error_code: {res.error_code.val}")
+            # optionally log any returned solution for debugging
             try:
                 sol = res.solution.joint_state
-                self.get_logger().debug(f'IK returned joints: {sol.name}')
-                self.get_logger().debug(f'IK returned positions: {sol.position}')
+                self.get_logger().debug(f"IK candidate names: {sol.name}")
+                self.get_logger().debug(f"IK candidate positions: {sol.position}")
             except Exception:
                 pass
             return None
 
-        # map solution into controller joint order
-        sol = res.solution.joint_state
+        solution = res.solution.joint_state
         positions = []
-        for j in self.joint_names:
-            if j in sol.name:
-                idx = sol.name.index(j)
-                positions.append(sol.position[idx])
+        for name in self.joint_names:
+            if name in solution.name:
+                idx = solution.name.index(name)
+                positions.append(solution.position[idx])
             else:
-                self.get_logger().error(f"IK solution missing joint '{j}'")
+                self.get_logger().error(f"IK solution missing joint '{name}'")
                 return None
 
-        self.get_logger().info(f'IK success — joints: {positions}')
+        self.get_logger().info(f"IK succeeded — joint target: {positions}")
         return positions
 
+    # -------------------------
+    # Trajectory execution
+    # -------------------------
     def execute_joint_trajectory(self, joint_positions, duration=5.0):
+        """Send a single-point trajectory to the arm controller."""
         self.get_logger().info(f"Sending trajectory for {self.joint_names}")
         self.get_logger().info(f"Target joints: {joint_positions}")
 
@@ -148,41 +198,51 @@ class AkabotController(Node):
         traj = JointTrajectory()
         traj.joint_names = self.joint_names
 
-        pt = JointTrajectoryPoint()
-        pt.positions = joint_positions
-        pt.time_from_start = Duration(sec=int(duration), nanosec=int((duration % 1)*1e9))
-        traj.points.append(pt)
+        point = JointTrajectoryPoint()
+        point.positions = joint_positions
+        # set time_from_start using builtin_interfaces Duration
+        point.time_from_start = Duration(sec=int(duration), nanosec=int((duration % 1) * 1e9))
+
+        traj.points.append(point)
         goal.trajectory = traj
 
-        send_fut = self.trajectory_client.send_goal_async(goal)
-        if not self._wait_for_future(send_fut, timeout_sec=10.0):
-            self.get_logger().error('Timed out waiting for action server to accept goal')
+        send_future = self.trajectory_client.send_goal_async(goal)
+        self.get_logger().info("Waiting for action server to accept goal...")
+
+        if not self._wait_for_future(send_future, timeout_sec=10.0):
+            self.get_logger().error("Timed out waiting for action server")
             return False
 
-        gh = send_fut.result()
-        if not gh.accepted:
-            self.get_logger().error('Trajectory goal rejected')
+        goal_handle = send_future.result()
+        if not goal_handle.accepted:
+            self.get_logger().error("Trajectory goal rejected by controller")
             return False
 
-        res_fut = gh.get_result_async()
-        # allow longer time for slow sim
-        if not self._wait_for_future(res_fut, timeout_sec=duration * 4.0):
-            self.get_logger().warn('Trajectory execution timed out')
+        self.get_logger().info("Goal accepted, waiting for execution to finish...")
+        result_future = goal_handle.get_result_async()
+
+        # allow a generous timeout for slow sim
+        wait_time = max(10.0, duration * 4.0)
+        if not self._wait_for_future(result_future, timeout_sec=wait_time):
+            self.get_logger().warn("Action execution timed out")
             return False
 
-        res = res_fut.result().result
-        success = (res.error_code == 0)
+        result = result_future.result().result
+        success = (getattr(result, 'error_code', 1) == 0)
         if success:
-            self.get_logger().info('Trajectory execution SUCCESS')
+            self.get_logger().info("Trajectory execution SUCCESS")
         else:
-            self.get_logger().error('Trajectory execution FAILED (error_code %s)' % str(res.error_code))
+            self.get_logger().error("Trajectory execution FAILED")
         return success
 
-    def move_to_pose(self, pose, duration=5.0):
-        joints = self.compute_ik(pose)
+    # -------------------------
+    # High-level helpers
+    # -------------------------
+    def move_to_pose(self, target_pose, duration=6.0):
+        joints = self.compute_ik(target_pose)
         if joints:
             return self.execute_joint_trajectory(joints, duration)
-        self.get_logger().error('move_to_pose(): IK returned no joints')
+        self.get_logger().error("move_to_pose(): IK returned no joints")
         return False
 
     def move_to_named_target(self, name):
@@ -191,22 +251,7 @@ class AkabotController(Node):
             'ready': [3.12, 2.182, -0.925, -1.1177, 0.0]
         }
         if name not in targets:
-            self.get_logger().error('Unknown named target: %s' % name)
+            self.get_logger().error(f"Unknown named target: {name}")
             return False
+        self.get_logger().info(f"Moving to named target: {name}")
         return self.execute_joint_trajectory(targets[name], duration=7.0)
-
-
-def main(args=None):
-    rclpy.init(args=args)
-    node = AkabotController()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
