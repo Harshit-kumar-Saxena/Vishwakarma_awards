@@ -25,7 +25,7 @@ setup(
     zip_safe=True,
     maintainer='aditya',
     maintainer_email='aditya.arora.emails@gmail.com',
-    description='Akabot control package with vision',
+    description='Akabot control package with vision and trajectory planning',
     license='TODO: License declaration',
     extras_require={
         'test': [
@@ -42,6 +42,7 @@ setup(
             'simple_ball_detector = akabot_control.simple_ball_detector:main',
             'publish_tf = akabot_control.publish_tf:main',
             'dual_camera_picker = akabot_control.dual_camera_picker:main',
+            'advanced_ball_picker = akabot_control.advanced_ball_picker:main',
         ],
     },
 )
