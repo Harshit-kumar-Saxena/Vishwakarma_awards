@@ -66,15 +66,17 @@ def generate_launch_description():
     )
 
     # 5. SPAWN ROBOT - FIXED POSITION
-    # Base is properly positioned on the table surface
-    # z=0.048 accounts for the base_plate height in the table model
+    # Base plate sits on ground level (z=0)
+    # The URDF definition handles lifting the arm structure to table height
+    # base_plate_joint: z=0 (on table surface)
+    # top_plate_joint: z=0.048 (revolute joint lifts it)
     spawn_robot = Node(
         package='ros_ign_gazebo',
         executable='create',
         arguments=[
             '-topic', 'robot_description',
             '-name', 'akabot',
-            '-x', '0.0595', '-y', '-0.0590', '-z', '0.048', '-Y', '0.0'
+            '-x', '0.0595', '-y', '-0.0590', '-z', '0.0', '-Y', '0.0'
         ],
         output='screen'
     )
