@@ -65,14 +65,16 @@ def generate_launch_description():
         launch_arguments={'gz_args': ['-r -v4 ', world_path]}.items(),
     )
 
-    # 5. SPAWN ROBOT
+    # 5. SPAWN ROBOT - FIXED POSITION
+    # Base is properly positioned on the table surface
+    # z=0.048 accounts for the base_plate height in the table model
     spawn_robot = Node(
         package='ros_ign_gazebo',
         executable='create',
         arguments=[
             '-topic', 'robot_description',
             '-name', 'akabot',
-            '-x', '-0.155216', '-y', '-0.056971', '-z', '1.05', '-Y', '0.016798'
+            '-x', '0.0595', '-y', '-0.0590', '-z', '0.048', '-Y', '0.0'
         ],
         output='screen'
     )
