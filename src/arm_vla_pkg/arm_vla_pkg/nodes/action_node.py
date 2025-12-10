@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
-VLA Action Node - Fixed IK Service Handling
+VLA Action Node - FIXED AsyncIO handling
 Executes pick-and-place from brain_node JSON commands
 """
 
 import rclpy
 from rclpy.node import Node
-from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint, JointTrajectory
@@ -16,7 +15,7 @@ from moveit_msgs.srv import GetPositionIK
 from moveit_msgs.msg import RobotState, Constraints, OrientationConstraint
 from builtin_interfaces.msg import Duration
 from rclpy.action import ActionClient
-from rclpy.callback_groups import ReentrantCallbackGroup, MutuallyExclusiveCallbackGroup
+from rclpy.callback_groups import ReentrantCallbackGroup
 from tf_transformations import quaternion_from_euler
 import json
 import time
@@ -29,7 +28,7 @@ class VLAActionNode(Node):
         
         # Separate callback groups for concurrent execution
         self.service_cb_group = ReentrantCallbackGroup()
-        self.action_cb_group = MutuallyExclusiveCallbackGroup()
+        self.action_cb_group = ReentrantCallbackGroup()
         
         # Joint configuration
         self.joint_names = [
@@ -188,13 +187,13 @@ class VLAActionNode(Node):
                 return False
             
             # 4. Move to pick hover
-            self.get_logger().info(f'⬆️  Moving to pick hover: {pick_pos[:2]} + {self.HOVER_Z}')
+            self.get_logger().info(f'⬆️ Moving to pick hover: {pick_pos[:2]} + {self.HOVER_Z}')
             if not self.try_reach_pose_with_fallback(pick_pos[0], pick_pos[1], self.HOVER_Z):
                 self.get_logger().error('Failed to reach hover position!')
                 return False
             
             # 5. Intermediate approach
-            self.get_logger().info(f'⬇️  Approaching pick position...')
+            self.get_logger().info(f'⬇️ Approaching pick position...')
             if not self.try_reach_pose_with_fallback(pick_pos[0], pick_pos[1], self.PICK_Z):
                 self.get_logger().warn('Intermediate approach failed, trying higher')
                 if not self.try_reach_pose_with_fallback(pick_pos[0], pick_pos[1], self.PICK_Z + 0.05):
@@ -213,7 +212,7 @@ class VLAActionNode(Node):
                 time.sleep(1.5)
             
             # 7. Lift object
-            self.get_logger().info(f'⬆️  Lifting object...')
+            self.get_logger().info(f'⬆️ Lifting object...')
             if not self.try_reach_pose_with_fallback(pick_pos[0], pick_pos[1], self.HOVER_Z):
                 self.get_logger().error('Failed to lift!')
                 return False
@@ -225,7 +224,7 @@ class VLAActionNode(Node):
                 return False
             
             # 9. Descend to place
-            self.get_logger().info(f'⬇️  Descending to place: {place_pos}')
+            self.get_logger().info(f'⬇️ Descending to place: {place_pos}')
             if not self.try_reach_pose_with_fallback(place_pos[0], place_pos[1], self.PLATE_PLACE_Z):
                 self.get_logger().warn('Failed exact place, releasing at hover')
             
@@ -235,7 +234,7 @@ class VLAActionNode(Node):
             time.sleep(1.5)
             
             # 11. Retract
-            self.get_logger().info(f'⬆️  Retracting...')
+            self.get_logger().info(f'⬆️ Retracting...')
             self.try_reach_pose_with_fallback(place_pos[0], place_pos[1], self.HOVER_Z)
             
             # 12. Return home
@@ -265,7 +264,7 @@ class VLAActionNode(Node):
         return p
     
     def compute_ik(self, target_pose):
-        """Compute IK for target pose - SYNCHRONOUS call"""
+        """Compute IK for target pose - ASYNC with blocking"""
         if not self.ik_service_ready:
             self.get_logger().error('IK service not ready!')
             return None
@@ -302,9 +301,16 @@ class VLAActionNode(Node):
         else:
             req.ik_request.robot_state = RobotState()
         
-        # SYNCHRONOUS call - this is the fix!
+        # ASYNC call with blocking
         try:
-            response = self.ik_client.call(req, timeout_sec=8.0)
+            future = self.ik_client.call_async(req)
+            rclpy.spin_until_future_complete(self, future, timeout_sec=8.0)
+            
+            if not future.done():
+                self.get_logger().error('IK service timeout')
+                return None
+            
+            response = future.result()
             
             if response is None:
                 self.get_logger().error('IK service returned None')
@@ -332,7 +338,7 @@ class VLAActionNode(Node):
             return None
     
     def execute_joint_trajectory(self, joint_positions, duration=5.0):
-        """Execute joint trajectory - SYNCHRONOUS"""
+        """Execute joint trajectory - ASYNC with blocking"""
         goal = FollowJointTrajectory.Goal()
         traj = JointTrajectory()
         traj.joint_names = self.joint_names
@@ -344,16 +350,31 @@ class VLAActionNode(Node):
         traj.points.append(point)
         goal.trajectory = traj
         
-        # Send goal and wait
-        goal_handle = self.trajectory_client.send_goal(goal)
+        # Send goal asynchronously
+        send_goal_future = self.trajectory_client.send_goal_async(goal)
+        
+        # Wait for goal to be accepted
+        rclpy.spin_until_future_complete(self, send_goal_future, timeout_sec=5.0)
+        
+        if not send_goal_future.done():
+            self.get_logger().error("Timeout waiting for goal acceptance")
+            return False
+        
+        goal_handle = send_goal_future.result()
         
         if not goal_handle.accepted:
             self.get_logger().error("Trajectory goal rejected")
             return False
         
         # Wait for result
-        result = goal_handle.get_result(timeout_sec=max(10.0, duration * 4.0))
+        result_future = goal_handle.get_result_async()
+        rclpy.spin_until_future_complete(self, result_future, timeout_sec=max(10.0, duration * 4.0))
         
+        if not result_future.done():
+            self.get_logger().warn("Trajectory execution timeout")
+            return False
+        
+        result = result_future.result()
         return result is not None
     
     def move_to_pose(self, target_pose, duration=6.0):
@@ -401,7 +422,7 @@ class VLAActionNode(Node):
         return True
 
     def set_gripper(self, val):
-        """Control gripper - SYNCHRONOUS"""
+        """Control gripper - ASYNC with blocking"""
         goal = FollowJointTrajectory.Goal()
         goal.trajectory.joint_names = ['right_claw_joint', 'left_claw_joint']
         
@@ -411,9 +432,14 @@ class VLAActionNode(Node):
         goal.trajectory.points = [pt]
 
         try:
-            goal_handle = self.hand_client.send_goal(goal, timeout_sec=3.0)
-            if goal_handle.accepted:
-                goal_handle.get_result(timeout_sec=3.0)
+            send_goal_future = self.hand_client.send_goal_async(goal)
+            rclpy.spin_until_future_complete(self, send_goal_future, timeout_sec=3.0)
+            
+            if send_goal_future.done():
+                goal_handle = send_goal_future.result()
+                if goal_handle.accepted:
+                    result_future = goal_handle.get_result_async()
+                    rclpy.spin_until_future_complete(self, result_future, timeout_sec=3.0)
         except Exception as e:
             self.get_logger().warn(f'Gripper control issue: {e}')
 
@@ -428,12 +454,8 @@ def main(args=None):
     rclpy.init(args=args)
     node = VLAActionNode()
     
-    # Use MultiThreadedExecutor for concurrent callbacks
-    executor = MultiThreadedExecutor(num_threads=4)
-    executor.add_node(node)
-    
     try:
-        executor.spin()
+        rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:

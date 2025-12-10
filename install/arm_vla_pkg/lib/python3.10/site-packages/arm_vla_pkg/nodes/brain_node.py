@@ -26,7 +26,7 @@ class BrainNode(Node):
         # State
         self.latest_detections = None
         self.ollama_url = "http://localhost:11434/api/generate"
-        self.model = "mistral:7b"  # Faster model (was mistral:7b)
+        self.model = "llama3.2:3b"  # Faster model (was mistral:7b)
         
         self.get_logger().info('🧠 Brain Node initialized. Waiting for commands...')
 
