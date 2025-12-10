@@ -1,0 +1,45 @@
+[0.717s] Invoking command in '/home/harshit/arm_vla_ws/build/arm_vla_pkg': PYTHONPATH=/home/harshit/arm_vla_ws/build/arm_vla_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/harshit/arm_vla_ws/build/arm_vla_pkg/build
+[0.928s] running develop
+[1.074s] Removing /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm-vla-pkg.egg-link (link to .)
+[1.105s] Invoked command in '/home/harshit/arm_vla_ws/build/arm_vla_pkg' returned '0': PYTHONPATH=/home/harshit/arm_vla_ws/build/arm_vla_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/harshit/arm_vla_ws/build/arm_vla_pkg/build
+[1.107s] Invoking command in '/home/harshit/arm_vla_ws/src/arm_vla_pkg': PYTHONPATH=/home/harshit/arm_vla_ws/build/arm_vla_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/arm_vla_pkg build --build-base /home/harshit/arm_vla_ws/build/arm_vla_pkg/build install --record /home/harshit/arm_vla_ws/build/arm_vla_pkg/install.log --single-version-externally-managed install_data --force
+[1.320s] running egg_info
+[1.321s] writing ../../build/arm_vla_pkg/arm_vla_pkg.egg-info/PKG-INFO
+[1.321s] writing dependency_links to ../../build/arm_vla_pkg/arm_vla_pkg.egg-info/dependency_links.txt
+[1.321s] writing entry points to ../../build/arm_vla_pkg/arm_vla_pkg.egg-info/entry_points.txt
+[1.321s] writing requirements to ../../build/arm_vla_pkg/arm_vla_pkg.egg-info/requires.txt
+[1.322s] writing top-level names to ../../build/arm_vla_pkg/arm_vla_pkg.egg-info/top_level.txt
+[1.323s] reading manifest file '../../build/arm_vla_pkg/arm_vla_pkg.egg-info/SOURCES.txt'
+[1.324s] writing manifest file '../../build/arm_vla_pkg/arm_vla_pkg.egg-info/SOURCES.txt'
+[1.324s] running build
+[1.324s] running build_py
+[1.325s] copying arm_vla_pkg/nodes/brain_node.py -> /home/harshit/arm_vla_ws/build/arm_vla_pkg/build/lib/arm_vla_pkg/nodes
+[1.325s] running install
+[1.325s] running install_lib
+[1.326s] creating /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg
+[1.326s] copying /home/harshit/arm_vla_ws/build/arm_vla_pkg/build/lib/arm_vla_pkg/__init__.py -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg
+[1.326s] creating /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes
+[1.327s] copying /home/harshit/arm_vla_ws/build/arm_vla_pkg/build/lib/arm_vla_pkg/nodes/brain_node.py -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes
+[1.327s] copying /home/harshit/arm_vla_ws/build/arm_vla_pkg/build/lib/arm_vla_pkg/nodes/speech_node.py -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes
+[1.327s] copying /home/harshit/arm_vla_ws/build/arm_vla_pkg/build/lib/arm_vla_pkg/nodes/__init__.py -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes
+[1.327s] copying /home/harshit/arm_vla_ws/build/arm_vla_pkg/build/lib/arm_vla_pkg/nodes/action_node.py -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes
+[1.327s] copying /home/harshit/arm_vla_ws/build/arm_vla_pkg/build/lib/arm_vla_pkg/nodes/vision_node.py -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes
+[1.328s] byte-compiling /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/__init__.py to __init__.cpython-310.pyc
+[1.328s] byte-compiling /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes/brain_node.py to brain_node.cpython-310.pyc
+[1.329s] byte-compiling /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes/speech_node.py to speech_node.cpython-310.pyc
+[1.330s] byte-compiling /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes/__init__.py to __init__.cpython-310.pyc
+[1.330s] byte-compiling /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes/action_node.py to action_node.cpython-310.pyc
+[1.332s] byte-compiling /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg/nodes/vision_node.py to vision_node.cpython-310.pyc
+[1.332s] running install_data
+[1.333s] copying resource/arm_vla_pkg -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/share/ament_index/resource_index/packages
+[1.333s] copying package.xml -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/share/arm_vla_pkg
+[1.333s] copying launch/vla_main.launch.py -> /home/harshit/arm_vla_ws/install/arm_vla_pkg/share/arm_vla_pkg/launch
+[1.333s] running install_egg_info
+[1.335s] Copying ../../build/arm_vla_pkg/arm_vla_pkg.egg-info to /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages/arm_vla_pkg-0.1.0-py3.10.egg-info
+[1.336s] running install_scripts
+[1.352s] Installing action_node script to /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/arm_vla_pkg
+[1.353s] Installing brain_node script to /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/arm_vla_pkg
+[1.353s] Installing speech_node script to /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/arm_vla_pkg
+[1.353s] Installing vision_node script to /home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/arm_vla_pkg
+[1.353s] writing list of installed files to '/home/harshit/arm_vla_ws/build/arm_vla_pkg/install.log'
+[1.380s] Invoked command in '/home/harshit/arm_vla_ws/src/arm_vla_pkg' returned '0': PYTHONPATH=/home/harshit/arm_vla_ws/build/arm_vla_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/harshit/arm_vla_ws/install/arm_vla_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/arm_vla_pkg build --build-base /home/harshit/arm_vla_ws/build/arm_vla_pkg/build install --record /home/harshit/arm_vla_ws/build/arm_vla_pkg/install.log --single-version-externally-managed install_data --force

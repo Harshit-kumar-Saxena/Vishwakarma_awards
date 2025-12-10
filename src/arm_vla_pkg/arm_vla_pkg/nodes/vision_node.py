@@ -1,81 +1,94 @@
 #!/usr/bin/env python3
+"""
+Vision Node - Detection JSON Publisher
+Subscribes to TF transforms published by publish_tf.py
+Converts them to JSON format for brain_node
+Publishes to /detections
+"""
+
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image
 from std_msgs.msg import String
-from cv_bridge import CvBridge
-import cv2
-import numpy as np
+from tf2_ros import TransformListener, Buffer
+import json
+import math
+
 
 class VisionNode(Node):
     def __init__(self):
         super().__init__('vision_node')
-        self.get_logger().info('Vision Node (Real Camera) Started')
         
-        self.bridge = CvBridge()
+        # TF listener
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
         
-        # Subscribe to the robot's camera
-        # Ensure your Gazebo bridge or camera plugin publishes this topic
-        self.image_sub = self.create_subscription(
-            Image,
-            '/camera/image_raw', 
-            self.image_callback,
-            10)
-
-        self.state_pub = self.create_publisher(String, '/world_state', 10)
-
-        # HSV Range for the ball (Tune this for your Gazebo ball color!)
-        # Example: White/Grey ball
-        self.lower_color = np.array([0, 0, 200])
-        self.upper_color = np.array([180, 30, 255])
-
-    def image_callback(self, msg):
-        try:
-            frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-        except Exception as e:
-            self.get_logger().error(f'CV Bridge error: {e}')
-            return
-
-        h, w, _ = frame.shape
-        center_x, center_y = w // 2, h // 2
-
-        # Detect Ball
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, self.lower_color, self.upper_color)
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        ball_info = "ball:missing"
+        # Publisher
+        self.detections_pub = self.create_publisher(String, '/detections', 10)
         
-        if contours:
-            # Find largest contour
-            c = max(contours, key=cv2.contourArea)
-            ((x, y), radius) = cv2.minEnclosingCircle(c)
+        # Object names to track (adjust based on your setup)
+        self.tracked_objects = [
+            'ball_0', 'ball_1', 'ball_2', 'ball_3',
+            'pink_plate', 'bowl'
+        ]
+        
+        self.reference_frame = 'base_link'
+        
+        # Timer to publish detections
+        self.create_timer(0.5, self.publish_detections)  # 2 Hz
+        
+        self.get_logger().info('👁️  Vision Node initialized. Tracking objects...')
+
+    def publish_detections(self):
+        """Query TF and publish JSON detections"""
+        detections = {}
+        
+        for obj_name in self.tracked_objects:
+            try:
+                # Get transform from base_link to object
+                transform = self.tf_buffer.lookup_transform(
+                    self.reference_frame,
+                    obj_name,
+                    rclpy.time.Time()
+                )
+                
+                # Extract position
+                pos = transform.transform.translation
+                detections[obj_name] = {
+                    'position': [
+                        round(pos.x, 3),
+                        round(pos.y, 3),
+                        round(pos.z, 3)
+                    ],
+                    'frame': self.reference_frame
+                }
+                
+            except Exception as e:
+                # Object not detected or TF not available
+                self.get_logger().debug(f'{obj_name} not found: {e}')
+                continue
+        
+        # Publish JSON
+        if detections:
+            json_msg = String()
+            json_msg.data = json.dumps(detections)
+            self.detections_pub.publish(json_msg)
             
-            if radius > 5: # Filter noise
-                # We send PIXEL coordinates relative to the image center
-                # offset_x < 0 means ball is to the left
-                # offset_y < 0 means ball is above center
-                offset_x = int(x - center_x)
-                offset_y = int(y - center_y)
-                
-                ball_info = f"ball_loc:[{offset_x},{offset_y}],ball_radius:{int(radius)}"
-                
-                # Draw for debug
-                cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 0), 2)
-                cv2.line(frame, (center_x, center_y), (int(x), int(y)), (255, 0, 0), 2)
+            self.get_logger().debug(f'Published {len(detections)} detections')
+        else:
+            self.get_logger().warn('No objects detected')
 
-        # Publish what we see
-        msg = String()
-        msg.data = f"{ball_info}, image_w:{w}, image_h:{h}"
-        self.state_pub.publish(msg)
-
-        cv2.imshow("Robot Vision", frame)
-        cv2.waitKey(1)
 
 def main(args=None):
     rclpy.init(args=args)
     node = VisionNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    cv2.destroyAllWindows()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
