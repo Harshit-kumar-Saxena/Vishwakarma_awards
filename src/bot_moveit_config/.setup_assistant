@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: bot_description
+    relative_path: urdf/bot.urdf.xacro
+  srdf:
+    relative_path: config/bot.srdf
+  package_settings:
+    author_name: Chinedu Amadi
+    author_email: noobinventor@tutamail.com
+    generated_timestamp: 1713019587

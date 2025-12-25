@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="bot">
+
+    <!-- Import bot urdf and ros2_control xacro files -->
+    <xacro:include filename="$(find bot_description)/urdf/bot.urdf.xacro"/>
+    <xacro:include filename="$(find bot_description)/urdf/bot.ros2_control.xacro"/>
+
+    <!-- ros2_control macro -->
+    <!-- Fill up plugin name -->
+    <xacro:bot_ros2_control name="RealSystem" plugin_name=""/>
+
+</robot>

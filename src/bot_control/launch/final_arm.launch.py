@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-VLA Complete System Launch - FIXED RGBD VERSION
-Includes proper RGBD camera bridges for point cloud support
-"""
 import os
 import yaml
 from launch import LaunchDescription
@@ -25,7 +21,7 @@ def load_yaml(package_name, file_path):
 
 def generate_launch_description():
     
-    # SETUP PATHS
+    # 1. SETUP PATHS
     pkg_gazebo = FindPackageShare('bot_gazebo')
     pkg_description = FindPackageShare('bot_description')
     pkg_moveit = FindPackageShare('bot_moveit_config')
@@ -35,21 +31,25 @@ def generate_launch_description():
     srdf_file = PathJoinSubstitution([pkg_moveit, 'srdf', 'bot.srdf'])
     robot_description_file = PathJoinSubstitution([pkg_description, 'urdf', 'bot_gz.urdf.xacro'])
     
-    # LOAD CONFIGURATIONS
+    # 2. LOAD CONFIGURATIONS
+    
+    # Robot Description
     robot_description_content = Command(
         [PathJoinSubstitution([FindExecutable(name='xacro')]), ' ', robot_description_file]
     )
     robot_description = {'robot_description': ParameterValue(robot_description_content, value_type=str)}
     
+    # Semantic Description
     robot_description_semantic_content = Command(
         [PathJoinSubstitution([FindExecutable(name='xacro')]), ' ', srdf_file]
     )
     robot_description_semantic = {'robot_description_semantic': ParameterValue(robot_description_semantic_content, value_type=str)}
     
+    # MoveIt Configs
     kinematics_config = load_yaml('bot_moveit_config', 'config/kinematics.yaml')
     moveit_controllers = load_yaml('bot_moveit_config', 'config/moveit_controllers.yaml')
 
-    # ROBOT STATE PUBLISHER
+    # 3. ROBOT STATE PUBLISHER
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -57,7 +57,7 @@ def generate_launch_description():
         parameters=[robot_description, {'use_sim_time': True}]
     )
 
-    # LAUNCH GAZEBO
+    # 4. LAUNCH GAZEBO
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([pkg_ros_ign_gazebo, 'launch', 'ign_gazebo.launch.py'])
@@ -65,7 +65,7 @@ def generate_launch_description():
         launch_arguments={'gz_args': ['-r -v4 ', world_path]}.items(),
     )
 
-    # SPAWN ROBOT
+    # 5. SPAWN ROBOT
     spawn_robot = Node(
         package='ros_ign_gazebo',
         executable='create',
@@ -77,11 +77,10 @@ def generate_launch_description():
         output='screen'
     )
 
-    # ========================================
-    # BRIDGES - FIXED FOR RGBD CAMERA
-    # ========================================
+    # 6. BRIDGES - FIXED VERSION
+    # Use ros_gz_bridge for both parameter_bridge and image_bridge
     
-    # Basic parameter bridge (non-image topics)
+    # Clock, LaserScan, and CameraInfo bridge
     parameter_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -115,38 +114,26 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
     )
 
-    # CONTROLLERS
+    # 7. CONTROLLERS
     joint_state_broadcaster = TimerAction(
         period=5.0,
-        actions=[Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
-            parameters=[{'use_sim_time': True}]
-        )]
+        actions=[Node(package='controller_manager', executable='spawner',
+                      arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'])]
     )
     
     arm_controller = TimerAction(
         period=8.0,
-        actions=[Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['bot_arm_controller', '--controller-manager', '/controller_manager'],
-            parameters=[{'use_sim_time': True}]
-        )]
+        actions=[Node(package='controller_manager', executable='spawner',
+                      arguments=['bot_arm_controller', '--controller-manager', '/controller_manager'])]
     )
     
     hand_controller = TimerAction(
         period=12.0,
-        actions=[Node(
-            package='controller_manager',
-            executable='spawner',
-            arguments=['hand_controller', '--controller-manager', '/controller_manager'],
-            parameters=[{'use_sim_time': True}]
-        )]
+        actions=[Node(package='controller_manager', executable='spawner',
+                      arguments=['hand_controller', '--controller-manager', '/controller_manager'])]
     )
 
-    # MOVEIT
+    # 8. MOVEIT
     move_group_node = TimerAction(
         period=15.0,
         actions=[Node(
@@ -168,7 +155,7 @@ def generate_launch_description():
         )]
     )
 
-    # VISION SYSTEM
+    # 9. LOGIC NODES
     publish_tf = TimerAction(
         period=21.0,
         actions=[Node(
@@ -180,45 +167,18 @@ def generate_launch_description():
         )]
     )
 
-    # ====================
-    # VLA PIPELINE NODES
-    # ====================
-    
-    vla_vision = TimerAction(
+    dual_camera_picker = TimerAction(
         period=30.0,
         actions=[Node(
-            package='arm_vla_pkg',
-            executable='vision_node',
-            name='vla_vision',
-            output='screen',
-            parameters=[{'use_sim_time': True}]
-        )]
-    )
-    
-    vla_brain = TimerAction(
-        period=31.0,
-        actions=[Node(
-            package='arm_vla_pkg',
-            executable='brain_node',
-            name='vla_brain',
-            output='screen',
-            parameters=[{'use_sim_time': True}]
-        )]
-    )
-    
-    vla_action = TimerAction(
-        period=32.0,
-        actions=[Node(
-            package='arm_vla_pkg',
-            executable='action_node',
-            name='vla_action',
+            package='bot_control',
+            executable='dual_camera_picker',
+            name='dual_camera_picker',
             output='screen',
             parameters=[{'use_sim_time': True}]
         )]
     )
 
     return LaunchDescription([
-        # Core System
         gazebo_launch,
         robot_state_publisher,
         spawn_robot,
@@ -229,9 +189,5 @@ def generate_launch_description():
         hand_controller,
         move_group_node,
         publish_tf,
-        
-        # VLA Pipeline
-        vla_vision,
-        vla_brain,
-        vla_action,
+        dual_camera_picker
     ])

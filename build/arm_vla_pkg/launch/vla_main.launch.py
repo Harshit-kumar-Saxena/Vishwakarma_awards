@@ -1,1 +1,0 @@
-/home/harshit/arm_vla_ws/src/arm_vla_pkg/launch/vla_main.launch.py
