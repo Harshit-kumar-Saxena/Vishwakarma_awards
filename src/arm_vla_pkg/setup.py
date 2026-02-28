@@ -25,6 +25,11 @@ setup(
             'speech_node = arm_vla_pkg.nodes.speech_node:main',
             'brain_node = arm_vla_pkg.nodes.brain_node:main',
             'action_node = arm_vla_pkg.nodes.action_node:main',
+            'visual_servoing_node = arm_vla_pkg.nodes.visual_servoing_node:main',
+            'test_visual_servoing = arm_vla_pkg.nodes.test_visual_servoing:main',
+            'visual_servoing_calibration = arm_vla_pkg.nodes.visual_servoing_calibration:main',
+            'way_point = arm_vla_pkg.nodes.way_point:main',
+
         ],
     },
 )

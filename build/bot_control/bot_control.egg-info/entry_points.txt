@@ -1,0 +1,10 @@
+[console_scripts]
+bot_controller = bot_control.bot_controller:main
+dual_camera_picker = bot_control.dual_camera_picker:main
+interactive_control = bot_control.interactive_control:main
+publish_tf = bot_control.publish_tf:main
+scanning_vision_pick_place = bot_control.scanning_vision_pick_place:main
+simple_ball_detector = bot_control.simple_ball_detector:main
+test_ee_camera = bot_control.test_ee_camera:main
+vision_pick_place = bot_control.vision_pick_place:main
+

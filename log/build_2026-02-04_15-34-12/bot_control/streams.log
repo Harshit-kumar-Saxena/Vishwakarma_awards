@@ -1,0 +1,28 @@
+[0.976s] Invoking command in '/home/harshit/arm_vla_ws/src/bot_control': CMAKE_PREFIX_PATH=/home/harshit/arm_vla_ws/install/bot_moveit_config:/home/harshit/arm_vla_ws/install/bot_description:/home/harshit/arm_vla_ws/install/bot_gazebo:/home/harshit/colcon_ws/install/ur_simulation_gz:/home/harshit/colcon_ws/install/ur_description:/home/harshit/colcon_ws/install/ur5_control:/home/harshit/colcon_ws/install/linkattacher_msgs:/home/harshit/colcon_ws/install/eyantra_warehouse:/home/harshit/colcon_ws/install/ebot_description PYTHONPATH=/home/harshit/arm_vla_ws/build/bot_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/harshit/arm_vla_ws/install/bot_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/bot_control build --build-base /home/harshit/arm_vla_ws/build/bot_control/build install --record /home/harshit/arm_vla_ws/build/bot_control/install.log --single-version-externally-managed install_data
+[1.331s] running egg_info
+[1.335s] writing ../../build/bot_control/bot_control.egg-info/PKG-INFO
+[1.335s] writing dependency_links to ../../build/bot_control/bot_control.egg-info/dependency_links.txt
+[1.335s] writing entry points to ../../build/bot_control/bot_control.egg-info/entry_points.txt
+[1.335s] writing requirements to ../../build/bot_control/bot_control.egg-info/requires.txt
+[1.335s] writing top-level names to ../../build/bot_control/bot_control.egg-info/top_level.txt
+[1.335s] reading manifest file '../../build/bot_control/bot_control.egg-info/SOURCES.txt'
+[1.336s] writing manifest file '../../build/bot_control/bot_control.egg-info/SOURCES.txt'
+[1.336s] running build
+[1.336s] running build_py
+[1.339s] running install
+[1.340s] running install_lib
+[1.342s] running install_data
+[1.343s] running install_egg_info
+[1.345s] removing '/home/harshit/arm_vla_ws/install/bot_control/lib/python3.10/site-packages/bot_control-1.0.0-py3.10.egg-info' (and everything under it)
+[1.349s] Copying ../../build/bot_control/bot_control.egg-info to /home/harshit/arm_vla_ws/install/bot_control/lib/python3.10/site-packages/bot_control-1.0.0-py3.10.egg-info
+[1.351s] running install_scripts
+[1.378s] Installing bot_controller script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.378s] Installing dual_camera_picker script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.378s] Installing interactive_control script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.378s] Installing publish_tf script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.378s] Installing scanning_vision_pick_place script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.378s] Installing simple_ball_detector script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.382s] Installing test_ee_camera script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.382s] Installing vision_pick_place script to /home/harshit/arm_vla_ws/install/bot_control/lib/bot_control
+[1.382s] writing list of installed files to '/home/harshit/arm_vla_ws/build/bot_control/install.log'
+[1.415s] Invoked command in '/home/harshit/arm_vla_ws/src/bot_control' returned '0': CMAKE_PREFIX_PATH=/home/harshit/arm_vla_ws/install/bot_moveit_config:/home/harshit/arm_vla_ws/install/bot_description:/home/harshit/arm_vla_ws/install/bot_gazebo:/home/harshit/colcon_ws/install/ur_simulation_gz:/home/harshit/colcon_ws/install/ur_description:/home/harshit/colcon_ws/install/ur5_control:/home/harshit/colcon_ws/install/linkattacher_msgs:/home/harshit/colcon_ws/install/eyantra_warehouse:/home/harshit/colcon_ws/install/ebot_description PYTHONPATH=/home/harshit/arm_vla_ws/build/bot_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/harshit/arm_vla_ws/install/bot_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/bot_control build --build-base /home/harshit/arm_vla_ws/build/bot_control/build install --record /home/harshit/arm_vla_ws/build/bot_control/install.log --single-version-externally-managed install_data

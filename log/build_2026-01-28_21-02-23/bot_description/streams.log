@@ -1,0 +1,67 @@
+[0.023s] Invoking command in '/home/harshit/arm_vla_ws/build/bot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake /home/harshit/arm_vla_ws/src/bot_description -DCMAKE_INSTALL_PREFIX=/home/harshit/arm_vla_ws/install/bot_description
+[0.366s] -- The C compiler identification is GNU 11.4.0
+[0.366s] -- The CXX compiler identification is GNU 11.4.0
+[0.366s] -- Detecting C compiler ABI info
+[0.367s] -- Detecting C compiler ABI info - done
+[0.367s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.367s] -- Detecting C compile features
+[0.367s] -- Detecting C compile features - done
+[0.367s] -- Detecting CXX compiler ABI info
+[0.377s] -- Detecting CXX compiler ABI info - done
+[0.386s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.386s] -- Detecting CXX compile features
+[0.387s] -- Detecting CXX compile features - done
+[0.392s] -- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.550s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.641s] -- Found urdf: 2.6.1 (/opt/ros/humble/share/urdf/cmake)
+[0.756s] -- Configuring done
+[0.760s] -- Generating done
+[0.762s] -- Build files have been written to: /home/harshit/arm_vla_ws/build/bot_description
+[0.769s] Invoked command in '/home/harshit/arm_vla_ws/build/bot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake /home/harshit/arm_vla_ws/src/bot_description -DCMAKE_INSTALL_PREFIX=/home/harshit/arm_vla_ws/install/bot_description
+[0.770s] Invoking command in '/home/harshit/arm_vla_ws/build/bot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --build /home/harshit/arm_vla_ws/build/bot_description -- -j8 -l8
+[0.807s] Invoked command in '/home/harshit/arm_vla_ws/build/bot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --build /home/harshit/arm_vla_ws/build/bot_description -- -j8 -l8
+[0.817s] Invoking command in '/home/harshit/arm_vla_ws/build/bot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --install /home/harshit/arm_vla_ws/build/bot_description
+[0.824s] -- Install configuration: ""
+[0.824s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/config
+[0.824s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/config/initial_positions.yaml
+[0.824s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/launch
+[0.824s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/launch/description_launch.py
+[0.824s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/launch/robot_state_publisher_launch.py
+[0.824s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes
+[0.825s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/lower_arm.stl
+[0.825s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/wrist.stl
+[0.825s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/left_claw.stl
+[0.825s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/claw_base.stl
+[0.826s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/right_claw.stl
+[0.826s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/base_cylinder.stl
+[0.827s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/upper_arm.stl
+[0.828s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/top_plate.stl
+[0.829s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/meshes/d415.dae
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/bot.urdf.xacro
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/bot_core.xacro
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/bot.ros2_control.xacro
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/bot_gz.urdf
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/real_cobot.urdf.xacro
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/bot_gz.urdf.xacro
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/end_effector_camera.xacro
+[0.832s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/bot_tf_camera.xacro
+[0.833s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/urdf/inertial_macros.xacro
+[0.833s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/rviz
+[0.833s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/rviz/description.rviz
+[0.833s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/ament_index/resource_index/package_run_dependencies/bot_description
+[0.833s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/ament_index/resource_index/parent_prefix_path/bot_description
+[0.833s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/environment/ament_prefix_path.sh
+[0.833s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/environment/ament_prefix_path.dsv
+[0.834s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/environment/path.sh
+[0.834s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/environment/path.dsv
+[0.834s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/local_setup.bash
+[0.834s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/local_setup.sh
+[0.834s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/local_setup.zsh
+[0.834s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/local_setup.dsv
+[0.834s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/package.dsv
+[0.835s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/ament_index/resource_index/packages/bot_description
+[0.835s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/cmake/bot_descriptionConfig.cmake
+[0.835s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/cmake/bot_descriptionConfig-version.cmake
+[0.835s] -- Installing: /home/harshit/arm_vla_ws/install/bot_description/share/bot_description/package.xml
+[0.837s] Invoked command in '/home/harshit/arm_vla_ws/build/bot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --install /home/harshit/arm_vla_ws/build/bot_description

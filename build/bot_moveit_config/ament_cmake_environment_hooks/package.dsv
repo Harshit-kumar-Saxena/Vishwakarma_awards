@@ -1,0 +1,4 @@
+source;share/bot_moveit_config/local_setup.bash
+source;share/bot_moveit_config/local_setup.dsv
+source;share/bot_moveit_config/local_setup.sh
+source;share/bot_moveit_config/local_setup.zsh

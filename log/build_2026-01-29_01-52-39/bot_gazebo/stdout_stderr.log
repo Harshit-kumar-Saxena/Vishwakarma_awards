@@ -1,0 +1,22 @@
+-- Install configuration: ""
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/config
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/config/bot_bridge.yaml
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/launch
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/launch/gz_launch.py
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/worlds
+-- Installing: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/worlds/pick_and_place_balls.world
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/ament_index/resource_index/package_run_dependencies/bot_gazebo
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/ament_index/resource_index/parent_prefix_path/bot_gazebo
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/ament_prefix_path.sh
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/ament_prefix_path.dsv
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/path.sh
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/path.dsv
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.bash
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.sh
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.zsh
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.dsv
+-- Installing: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/package.dsv
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/ament_index/resource_index/packages/bot_gazebo
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/cmake/bot_gazeboConfig.cmake
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/cmake/bot_gazeboConfig-version.cmake
+-- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/package.xml

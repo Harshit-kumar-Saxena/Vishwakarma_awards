@@ -1,0 +1,26 @@
+[0.391s] Invoking command in '/home/harshit/arm_vla_ws/build/bot_gazebo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/arm_vla_ws/install/bot_control:/home/harshit/arm_vla_ws/install/arm_vla_pkg:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --build /home/harshit/arm_vla_ws/build/bot_gazebo -- -j8 -l8
+[0.464s] Invoked command in '/home/harshit/arm_vla_ws/build/bot_gazebo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/arm_vla_ws/install/bot_control:/home/harshit/arm_vla_ws/install/arm_vla_pkg:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --build /home/harshit/arm_vla_ws/build/bot_gazebo -- -j8 -l8
+[0.464s] Invoking command in '/home/harshit/arm_vla_ws/build/bot_gazebo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/arm_vla_ws/install/bot_control:/home/harshit/arm_vla_ws/install/arm_vla_pkg:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --install /home/harshit/arm_vla_ws/build/bot_gazebo
+[0.490s] -- Install configuration: ""
+[0.491s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/config
+[0.492s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/config/bot_bridge.yaml
+[0.492s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/launch
+[0.492s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/launch/gz_launch.py
+[0.492s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/worlds
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/worlds/pick_and_place_balls.world
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/ament_index/resource_index/package_run_dependencies/bot_gazebo
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/ament_index/resource_index/parent_prefix_path/bot_gazebo
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/ament_prefix_path.sh
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/ament_prefix_path.dsv
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/path.sh
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/environment/path.dsv
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.bash
+[0.493s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.sh
+[0.494s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.zsh
+[0.494s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/local_setup.dsv
+[0.494s] -- Installing: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/package.dsv
+[0.494s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/ament_index/resource_index/packages/bot_gazebo
+[0.494s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/cmake/bot_gazeboConfig.cmake
+[0.494s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/cmake/bot_gazeboConfig-version.cmake
+[0.494s] -- Up-to-date: /home/harshit/arm_vla_ws/install/bot_gazebo/share/bot_gazebo/package.xml
+[0.494s] Invoked command in '/home/harshit/arm_vla_ws/build/bot_gazebo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/harshit/arm_vla_ws/install/bot_control:/home/harshit/arm_vla_ws/install/arm_vla_pkg:/home/harshit/colcon_ws/install/eyantra_solution:/opt/ros/humble /usr/bin/cmake --install /home/harshit/arm_vla_ws/build/bot_gazebo
